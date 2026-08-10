@@ -12,7 +12,7 @@
 |-----|----------|
 | Họ và tên | Nguyễn Đức Thiện |
 | Mã học viên | 2A202601415 |
-| Repo | (điền link repo DAY12-...) |
+| Repo | DAY12-2A202601415-NguyenDucThien.git |
 
 ## Service
 
