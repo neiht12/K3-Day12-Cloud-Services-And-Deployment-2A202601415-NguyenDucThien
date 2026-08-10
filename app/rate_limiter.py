@@ -28,6 +28,9 @@ class RateLimiter:
         return f"ratelimit:{user_id}"
 
     def hit_count(self, user_id: str, now: float | None = None) -> int:
+        now = now if now is not None else time.time()
+        self.client.zremrangebyscore(self._key(user_id), 0, now - WINDOW_SECONDS)
+        return self.client.zcard(self._key(user_id))
         """Số request của user trong ``WINDOW_SECONDS`` giây gần nhất.
 
         TODO (CP3):
@@ -39,6 +42,17 @@ class RateLimiter:
         raise NotImplementedError("TODO (CP3): cài đặt hit_count")
 
     def check(self, user_id: str, now: float | None = None) -> None:
+        now = now if now is not None else time.time()
+        count =self.hit_count(user_id, now)
+        if count >= self.limit:
+            raise HTTPException(
+                status_code=status.HTTP_429_TOO_MANY_REQUESTS,
+                detail="rate limit exceeded",
+                headers={"Retry-After": str(WINDOW_SECONDS)},
+            )
+        self.client.zadd(self._key(user_id), {f"{now}:{uuid.uuid4().hex}": now})
+        self.client.expire(self._key(user_id), WINDOW_SECONDS)
+
         """Cho qua nếu còn quota, ngược lại raise 429.
 
         TODO (CP3):
@@ -56,4 +70,4 @@ class RateLimiter:
         Lưu ý thứ tự: **kiểm tra trước, ghi nhận sau**. Ghi trước rồi mới đếm
         sẽ chặn nhầm ngay ở request thứ ``limit``.
         """
-        raise NotImplementedError("TODO (CP3): cài đặt check")
+        # raise NotImplementedError("TODO (CP3): cài đặt check")
