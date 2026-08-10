@@ -10,15 +10,15 @@
 
 | Mục | Nội dung |
 |-----|----------|
-| Họ và tên | (điền họ tên) |
-| Mã học viên | (điền mã học viên) |
+| Họ và tên | Nguyễn Đức Thiện |
+| Mã học viên | 2A202601415 |
 | Repo | (điền link repo DAY12-...) |
 
 ## Service
 
 | Mục | Nội dung |
 |-----|----------|
-| Public URL | k3-day12-cloud-services-and-deployment-2a2026014-production.up.railway.app |
+| Public URL | https://k3-day12-cloud-services-and-deployment-2a2026014-production.up.railway.app |
 | Platform | Railway |
 | Ngày deploy | 2026-08-10 |
 
@@ -41,28 +41,28 @@ Thay `<URL>` bằng Public URL ở trên:
 
 ```bash
 # 1. Liveness — mong đợi 200 {"status":"ok"}
-curl -i <URL>/health
+curl -i https://https://k3-day12-cloud-services-and-deployment-2a2026014-production.up.railway.app/health
 
 # 2. Readiness — mong đợi 200 {"status":"ready"} (đã nối được Redis)
-curl -i <URL>/ready
+curl -i https://k3-day12-cloud-services-and-deployment-2a2026014-production.up.railway.app/ready
 
 # 3. Không có API key — mong đợi 401
-curl -i -X POST <URL>/ask \
+curl -i -X POST https://k3-day12-cloud-services-and-deployment-2a2026014-production.up.railway.app/ask \
   -H "Content-Type: application/json" \
   -d '{"question":"Hello"}'
 
 # 4. Có API key — mong đợi 200 kèm câu trả lời
-curl -i -X POST <URL>/ask \
+curl -i -X POST https://k3-day12-cloud-services-and-deployment-2a2026014-production.up.railway.app/ask \
   -H "Content-Type: application/json" \
-  -H "X-API-Key: $AGENT_API_KEY" \
+  -H "X-API-Key: 1lXppkX2jLPOhY1DQfzuRZUv-827DFGPc-IDEqG_uHg" \
   -H "X-User-Id: sv-test" \
   -d '{"question":"Deploy là gì?"}'
 
 # 5. Rate limit — gọi 15 lần, những lần cuối phải trả 429
 for i in $(seq 1 15); do
-  curl -s -o /dev/null -w "%{http_code} " -X POST <URL>/ask \
+  curl -s -o /dev/null -w "%{http_code} " -X POST https://k3-day12-cloud-services-and-deployment-2a2026014-production.up.railway.app/ask \
     -H "Content-Type: application/json" \
-    -H "X-API-Key: $AGENT_API_KEY" \
+    -H "X-API-Key: 1lXppkX2jLPOhY1DQfzuRZUv-827DFGPc-IDEqG_uHg" \
     -H "X-User-Id: sv-test" \
     -d '{"question":"test"}'
 done; echo
@@ -71,11 +71,53 @@ done; echo
 ## Kết Quả Chạy Thật
 
 Dán output của các lệnh trên vào đây:
+# 1. Liveness
+HTTP/2 200 
+content-type: application/json
+date: Mon, 10 Aug 2026 05:23:44 GMT
+server: railway-hikari
+x-railway-request-id: pn9dZ7oxTgyUSLiWV7rehQ
+content-length: 57
+x-hikari-trace: sin1.nzn2
+x-railway-edge: sin1
 
-```
-Đã deploy bằng Railway. Chưa dán output kiểm tra thực tế.
-```
+# 2. Readiness
+HTTP/2 200 
+content-type: application/json
+date: Mon, 10 Aug 2026 05:26:17 GMT
+server: railway-hikari
+x-railway-request-id: uwq2Hcj3TYi1Kl8B0ubPiw
+content-length: 31
+x-hikari-trace: sin1.hs0s
+x-railway-edge: sin1
 
+# 3. Không API KEY
+HTTP/2 401 
+content-type: application/json
+date: Mon, 10 Aug 2026 05:27:21 GMT
+server: railway-hikari
+x-railway-request-id: YC7VSQLbQnGxOWgzV7rehQ
+content-length: 39
+x-hikari-trace: sin1.tr00
+x-railway-edge: sin1
+
+{"detail":"invalid or missing API key"}
+
+# 4. Có API KEY
+HTTP/2 200 
+content-type: application/json
+date: Mon, 10 Aug 2026 05:29:04 GMT
+server: railway-hikari
+x-railway-request-id: G7-BRnl_RpCzhlRlV7rehQ
+content-length: 279
+x-hikari-trace: sin1.tr00
+x-railway-edge: sin1
+vary: accept-encoding
+
+{"answer":"Câu hỏi hay. Deploy là gì thường được giải quyết bằng cách chuẩn hóa môi trường chạy: cùng một image chạy giống nhau ở laptop và trên cloud.","user_id":"sv-test","history_length":0,"cost_usd":2.145e-05,"tokens":{"in":3,"out":35}}
+
+# 5.Rate Limit
+200 200 200 200 200 200 200 200 200 200 429 429 429 429 429 
 ## Ảnh Chụp Màn Hình
 
 Đặt ảnh trong thư mục `screenshots/`:
